@@ -11,14 +11,14 @@ terraform {
     bucket         = "resume-terraform-states"
     key            = "state/terraform.tfstate"
     region         = "us-east-1"
-    profile        = "resume-challenge"
+    profile        = "terraform-user"
     dynamodb_table = "resume-terraform-lock"
   }
 }
 
 # Configure the AWS Provider and region
 provider "aws" {
-  profile = "resume-challenge"
+  profile = "terraform-user"
   region  = var.region
 
 
