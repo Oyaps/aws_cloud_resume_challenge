@@ -3,7 +3,7 @@ const countEl = document.getElementById("visitors");
 updateVisitCount();
 
 function updateVisitCount() {
-    fetch('https://v67hzqulo4.execute-api.us-east-1.amazonaws.com/Prod/visitors')
+    fetch('https://zl7hezvfy6.execute-api.us-east-1.amazonaws.com/Prod')
         .then(response => {
         return response.json()
       })

@@ -119,6 +119,11 @@ resource "aws_api_gateway_deployment" "apigw_deployment" {
     redeployment = sha1(jsonencode(aws_api_gateway_rest_api.cloud_apigw.body))
   }
 
+  depends_on = [
+    aws_api_gateway_method.api_get,
+    aws_api_gateway_integration.get_integration
+  ]
+
   /* depends_on = [
     aws_api_gateway_integration.post_integration
   ] */
