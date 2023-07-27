@@ -36,11 +36,14 @@ def lambda_handler(event, context):
         'headers': {
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+            "Content-Type": "application/json"
         },
         "body": responseBody
     }
 
 
+
     # Return api response object
     return apiResponse
+
