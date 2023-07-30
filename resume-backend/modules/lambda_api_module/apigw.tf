@@ -14,54 +14,6 @@ resource "aws_api_gateway_resource" "visitors" {
   path_part = "visitors"
 }
 
-##### API Gateway Post Method #####
-resource "aws_api_gateway_method" "api_post" {
-  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
-  resource_id   = aws_api_gateway_resource.visitors.id
-  http_method   = "POST"
-  authorization = "NONE"
-  
-}
-
-##### API Gateway Post Integration #####
-resource "aws_api_gateway_integration" "post_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.cloud_apigw.id
-  resource_id             = aws_api_gateway_resource.visitors.id
-  http_method             = aws_api_gateway_method.api_post.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.lambda_function.invoke_arn
-}
-
-
-##### API Gateway Post Method Response #####
-resource "aws_api_gateway_method_response" "post_response_200" {
-  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
-  resource_id = aws_api_gateway_resource.visitors.id
-  http_method = aws_api_gateway_integration.post_integration.http_method
-  status_code = "200"
-
-    response_models = {
-    "application/json" = "Empty"
-  }
-
-    lifecycle {
-    ignore_changes = all
-  }
-}
-
-##### API Gateway Post Integration Response #####
-resource "aws_api_gateway_integration_response" "post_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
-  resource_id = aws_api_gateway_resource.visitors.id
-  http_method = aws_api_gateway_method_response.post_response_200.http_method
-  status_code = aws_api_gateway_method_response.post_response_200.status_code
-
-  response_templates = {
-    "application/json" = ""
-  }
-}
-
 
 
 ##### API Gateway Get Method #####
@@ -111,59 +63,7 @@ resource "aws_api_gateway_integration_response" "get_integration_response" {
   }
 }
 
-##### API Gateway Deployment #####
-resource "aws_api_gateway_deployment" "apigw_deployment" {
-  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
-
-  triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.cloud_apigw.body))
-  }
-
-  depends_on = [
-    aws_api_gateway_method.api_get,
-    aws_api_gateway_integration.get_integration
-  ]
-
-  /* depends_on = [
-    aws_api_gateway_integration.post_integration
-  ] */
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_api_gateway_stage" "apigw_stage" {
-  deployment_id = aws_api_gateway_deployment.apigw_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.cloud_apigw.id
-  stage_name    = "Prod"
-}
-
-
-
-
-
-
-
-
-
-
-/* resource "aws_api_gateway_model" "api_model" {
-  rest_api_id  = aws_api_gateway_rest_api.cloud_apigw.id
-  name         = "user"
-  description  = "a JSON schema"
-  content_type = "application/json"
-
-  schema = <<EOF
-{
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "title" : "Empty Schema",
-  "type" : "object"
-}
-EOF
-} */
-
-/* ##### API Gateway Options Method #####
+ ##### API Gateway Options Method #####
 resource "aws_api_gateway_method" "api_options" {
   rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
   resource_id   = aws_api_gateway_resource.visitors.id
@@ -178,4 +78,78 @@ resource "aws_api_gateway_integration" "options_integration" {
   resource_id             = aws_api_gateway_resource.visitors.id
   http_method             = aws_api_gateway_method.api_options.http_method
   type                    = "MOCK"
-} */
+  passthrough_behavior = "WHEN_NO_MATCH"
+  request_templates = {
+    "application/json" : "{\"statusCode\": 200}"
+  }
+}
+
+
+##### API Gateway Options Method Response #####
+resource "aws_api_gateway_method_response" "options_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
+  resource_id = aws_api_gateway_resource.visitors.id
+  http_method = aws_api_gateway_integration.options_integration.http_method
+  status_code = "200"
+
+    response_models = {
+    "application/json" = "Empty"
+  }
+
+    response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }   
+  
+    lifecycle {
+    ignore_changes = all
+  }
+}
+
+##### API Gateway Options Integration Response #####
+resource "aws_api_gateway_integration_response" "options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
+  resource_id = aws_api_gateway_resource.visitors.id
+  http_method = aws_api_gateway_method_response.options_response_200.http_method
+  status_code = aws_api_gateway_method_response.options_response_200.status_code
+
+  response_templates = {
+    "application/json" = ""
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+}
+
+
+
+##### API Gateway Deployment #####
+resource "aws_api_gateway_deployment" "apigw_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.cloud_apigw.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.cloud_apigw.body))
+  }
+
+  depends_on = [
+    aws_api_gateway_method.api_get,
+    aws_api_gateway_integration.get_integration
+  ]
+
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "apigw_stage" {
+  deployment_id = aws_api_gateway_deployment.apigw_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.cloud_apigw.id
+  stage_name    = "Prod"
+}
+

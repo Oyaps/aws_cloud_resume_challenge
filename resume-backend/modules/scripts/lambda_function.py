@@ -1,3 +1,4 @@
+
 import json
 import boto3
 import os
@@ -13,6 +14,13 @@ table = dynamodb.Table(ddbTableName)
 
 def lambda_handler(event, context):
     # Update item in table or add if doesn't exist
+    
+    ddbResponse = table.get_item(
+        Key={
+            'VisitID': 'count'
+        }
+    )
+    
     ddbResponse = table.update_item(
         Key={
             'VisitID': 'count'
@@ -31,19 +39,18 @@ def lambda_handler(event, context):
 
     # Create api response object
     apiResponse = {
-        "isBase64Encoded": False,
-        "statusCode": 200,
+        'isBase64Encoded': False,
+        'statusCode': 200,
         'headers': {
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-            "Content-Type": "application/json"
+            'Access-Control-Allow-Methods': 'GET,OPTIONS',
+            'Content-Type': 'application/json'
         },
-        "body": responseBody
+        'body': responseBody
     }
 
 
 
     # Return api response object
     return apiResponse
-
