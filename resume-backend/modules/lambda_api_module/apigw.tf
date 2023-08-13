@@ -120,7 +120,11 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
 
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type'"
+<<<<<<< HEAD
     "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST'"
+=======
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+>>>>>>> 8e4156d8cc4d02416bd58e6fc40fe628e34a6604
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 
